@@ -276,6 +276,15 @@
         
         .homework-card {
             border-left: 4px solid var(--primary);
+            position: relative;
+        }
+        
+        .homework-overdue {
+            border-left-color: var(--danger);
+        }
+        
+        .homework-completed {
+            border-left-color: var(--success);
         }
         
         .grade {
@@ -353,6 +362,7 @@
         .actions {
             display: flex;
             gap: 10px;
+            flex-wrap: wrap;
         }
         
         .sync-status {
@@ -387,36 +397,6 @@
             100% { opacity: 1; }
         }
         
-        .grade-type-badge {
-            font-size: 0.7rem;
-            margin-left: 5px;
-            opacity: 0.8;
-        }
-        
-        .coefficient-display {
-            font-size: 0.8rem;
-            color: var(--gray);
-            margin-left: 5px;
-        }
-        
-        .real-time-notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: var(--success);
-            color: white;
-            padding: 15px 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            z-index: 1001;
-            animation: slideIn 0.5s ease-out;
-        }
-        
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        
         .demo-accounts {
             background: #f8f9fa;
             border-radius: 8px;
@@ -440,6 +420,13 @@
             margin-top: 20px;
             padding-top: 20px;
             border-top: 1px solid var(--light);
+        }
+        
+        .status-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 0.7rem;
         }
         
         @media (max-width: 768px) {
@@ -473,9 +460,8 @@
                 margin-top: 10px;
             }
             
-            .real-time-notification {
-                left: 20px;
-                right: 20px;
+            .actions {
+                flex-direction: column;
             }
         }
     </style>
@@ -494,7 +480,6 @@
                         <li><a href="#" id="nav-homework" class="hidden">Домашние задания</a></li>
                         <li><a href="#" id="nav-students" class="hidden">Ученики</a></li>
                         <li><a href="#" id="nav-classes" class="hidden">Классы</a></li>
-                        <li><a href="#" id="nav-settings" class="hidden">Настройки</a></li>
                     </ul>
                 </nav>
                 <div class="auth-section">
@@ -556,13 +541,16 @@
                             <p>Количество классов: <span id="class-count">0</span></p>
                             <p>Количество учеников: <span id="student-count">0</span></p>
                             <p>Активных заданий: <span id="homework-count">0</span></p>
+                            <p>Всего оценок: <span id="grades-count">0</span></p>
                         </div>
                         <div class="card">
                             <h3>Быстрые действия</h3>
-                            <button class="btn btn-primary" id="create-student-btn">Добавить ученика</button>
-                            <button class="btn btn-success" id="create-class-btn">Создать класс</button>
-                            <button class="btn btn-warning" id="create-homework-btn">Добавить задание</button>
-                            <button class="btn btn-info" id="add-grade-quick-btn">Поставить оценку</button>
+                            <div class="actions">
+                                <button class="btn btn-primary" id="create-student-btn">Добавить ученика</button>
+                                <button class="btn btn-success" id="create-class-btn">Создать класс</button>
+                                <button class="btn btn-warning" id="create-homework-btn">Добавить ДЗ</button>
+                                <button class="btn btn-info" id="add-grade-quick-btn">Поставить оценку</button>
+                            </div>
                         </div>
                         <div class="card">
                             <h3>Синхронизация</h3>
@@ -592,7 +580,69 @@
             </div>
         </div>
 
-        <!-- Остальные страницы будут добавляться по мере необходимости -->
+        <!-- Страница журнала -->
+        <div id="journal-page" class="hidden">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Журнал оценок</h2>
+                    <button class="btn btn-info hidden" id="add-grade-btn">Добавить оценку</button>
+                </div>
+                <div id="journal-content">
+                    <p>Здесь будут отображаться все оценки</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Страница домашних заданий -->
+        <div id="homework-page" class="hidden">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Домашние задания</h2>
+                    <button class="btn btn-primary hidden" id="add-homework-btn">Добавить ДЗ</button>
+                </div>
+                <div id="homework-list">
+                    <!-- Список ДЗ будет здесь -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Страница учеников -->
+        <div id="students-page" class="hidden">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Управление учениками</h2>
+                    <button class="btn btn-primary" id="create-student-btn2">Добавить ученика</button>
+                </div>
+                <table id="students-management-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>ФИО</th>
+                            <th>Класс</th>
+                            <th>Логин</th>
+                            <th>Пароль</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody id="students-management-tbody">
+                        <!-- Данные будут добавлены через JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Страница классов -->
+        <div id="classes-page" class="hidden">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Управление классами</h2>
+                    <button class="btn btn-primary" id="create-class-btn2">Создать класс</button>
+                </div>
+                <div class="grid" id="classes-grid">
+                    <!-- Карточки классов будут добавлены через JS -->
+                </div>
+            </div>
+        </div>
     </main>
 
     <!-- Модальное окно создания аккаунта учителя -->
@@ -620,6 +670,69 @@
             </div>
             <div class="actions">
                 <button class="btn btn-primary" id="save-teacher-btn">Создать аккаунт</button>
+                <button class="btn btn-light close-modal">Отмена</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно создания класса -->
+    <div id="create-class-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Создать класс</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="form-group">
+                <label for="class-name">Название класса</label>
+                <input type="text" id="class-name" placeholder="10А">
+            </div>
+            <div class="actions">
+                <button class="btn btn-primary" id="save-class-btn">Создать класс</button>
+                <button class="btn btn-light close-modal">Отмена</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно создания ДЗ -->
+    <div id="create-homework-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Добавить домашнее задание</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="form-group">
+                <label for="homework-subject">Предмет</label>
+                <select id="homework-subject">
+                    <option value="Математика">Математика</option>
+                    <option value="Русский язык">Русский язык</option>
+                    <option value="Литература">Литература</option>
+                    <option value="История">История</option>
+                    <option value="Биология">Биология</option>
+                    <option value="Физика">Физика</option>
+                    <option value="Химия">Химия</option>
+                    <option value="Английский язык">Английский язык</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="homework-class">Класс</label>
+                <select id="homework-class">
+                    <!-- Опции будут добавлены через JS -->
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="homework-title">Тема задания</label>
+                <input type="text" id="homework-title" placeholder="Тема задания">
+            </div>
+            <div class="form-group">
+                <label for="homework-description">Описание</label>
+                <textarea id="homework-description" rows="4" placeholder="Подробное описание задания"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="homework-due-date">Срок сдачи</label>
+                <input type="date" id="homework-due-date">
+            </div>
+            <div class="actions">
+                <button class="btn btn-primary" id="save-homework-btn">Сохранить</button>
                 <button class="btn btn-light close-modal">Отмена</button>
             </div>
         </div>
@@ -734,8 +847,29 @@
                         { id: 1, name: "10А", createdAt: new Date().toISOString() }
                     ],
                     subjects: ["Математика", "Русский язык", "Литература", "История", "Биология", "Физика", "Химия", "Английский язык"],
-                    homework: [],
-                    grades: [],
+                    homework: [
+                        {
+                            id: 1,
+                            subject: "Математика",
+                            classId: 1,
+                            title: "Решение квадратных уравнений",
+                            description: "Решить задачи №1-10 из учебника стр. 45",
+                            dueDate: "2024-01-15",
+                            createdAt: new Date().toISOString(),
+                            grades: {}
+                        }
+                    ],
+                    grades: [
+                        {
+                            id: 1,
+                            studentId: 2,
+                            subject: "Математика",
+                            grade: 5,
+                            comment: "Отлично!",
+                            date: new Date().toISOString().split('T')[0],
+                            timestamp: Date.now()
+                        }
+                    ],
                     lastSync: Date.now(),
                     version: "2.0"
                 };
@@ -775,11 +909,30 @@
             document.getElementById('create-teacher-btn').addEventListener('click', () => showModal('create-teacher-modal'));
             document.getElementById('save-teacher-btn').addEventListener('click', createTeacherAccount);
             
+            // Навигация
+            document.getElementById('nav-home').addEventListener('click', () => showPage('main-page'));
+            document.getElementById('nav-journal').addEventListener('click', () => showPage('journal-page'));
+            document.getElementById('nav-homework').addEventListener('click', () => showPage('homework-page'));
+            document.getElementById('nav-students').addEventListener('click', () => showPage('students-page'));
+            document.getElementById('nav-classes').addEventListener('click', () => showPage('classes-page'));
+            
             // Обработчики для учителя
             document.getElementById('create-student-btn').addEventListener('click', () => showModal('create-student-modal'));
+            document.getElementById('create-student-btn2').addEventListener('click', () => showModal('create-student-modal'));
             document.getElementById('save-student-btn').addEventListener('click', createStudent);
+            
+            document.getElementById('create-class-btn').addEventListener('click', () => showModal('create-class-modal'));
+            document.getElementById('create-class-btn2').addEventListener('click', () => showModal('create-class-modal'));
+            document.getElementById('save-class-btn').addEventListener('click', createClass);
+            
+            document.getElementById('create-homework-btn').addEventListener('click', () => showModal('create-homework-modal'));
+            document.getElementById('add-homework-btn').addEventListener('click', () => showModal('create-homework-modal'));
+            document.getElementById('save-homework-btn').addEventListener('click', createHomework);
+            
             document.getElementById('add-grade-quick-btn').addEventListener('click', () => showModal('add-grade-modal'));
+            document.getElementById('add-grade-btn').addEventListener('click', () => showModal('add-grade-modal'));
             document.getElementById('save-grade-btn').addEventListener('click', addGrade);
+            
             document.getElementById('manual-sync-main-btn').addEventListener('click', manualSync);
 
             // Закрытие модальных окон
@@ -794,7 +947,7 @@
             document.getElementById('password').value = 'Stasya';
         });
 
-        // Функция авторизации - ИСПРАВЛЕННАЯ
+        // Функция авторизации
         function login() {
             const loginInput = document.getElementById('login').value;
             const passwordInput = document.getElementById('password').value;
@@ -839,6 +992,10 @@
         function showLoginPage() {
             document.getElementById('login-page').classList.remove('hidden');
             document.getElementById('main-page').classList.add('hidden');
+            document.getElementById('journal-page').classList.add('hidden');
+            document.getElementById('homework-page').classList.add('hidden');
+            document.getElementById('students-page').classList.add('hidden');
+            document.getElementById('classes-page').classList.add('hidden');
             
             document.getElementById('login-btn').classList.remove('hidden');
             document.getElementById('logout-btn').classList.add('hidden');
@@ -854,6 +1011,10 @@
         function showMainPage() {
             document.getElementById('login-page').classList.add('hidden');
             document.getElementById('main-page').classList.remove('hidden');
+            document.getElementById('journal-page').classList.add('hidden');
+            document.getElementById('homework-page').classList.add('hidden');
+            document.getElementById('students-page').classList.add('hidden');
+            document.getElementById('classes-page').classList.add('hidden');
             
             document.getElementById('login-btn').classList.add('hidden');
             document.getElementById('logout-btn').classList.remove('hidden');
@@ -863,14 +1024,53 @@
             document.getElementById('user-name').textContent = currentUser.name;
             document.getElementById('user-role').textContent = currentUser.role === 'teacher' ? 'Учитель' : 'Ученик';
             
+            // Показать/скрыть элементы навигации
             if (currentUser.role === 'teacher') {
+                document.getElementById('nav-students').classList.remove('hidden');
+                document.getElementById('nav-classes').classList.remove('hidden');
+                document.getElementById('add-homework-btn').classList.remove('hidden');
+                document.getElementById('add-grade-btn').classList.remove('hidden');
                 document.getElementById('teacher-dashboard').classList.remove('hidden');
                 document.getElementById('student-dashboard').classList.add('hidden');
                 showTeacherDashboard();
             } else {
+                document.getElementById('nav-students').classList.add('hidden');
+                document.getElementById('nav-classes').classList.add('hidden');
+                document.getElementById('add-homework-btn').classList.add('hidden');
+                document.getElementById('add-grade-btn').classList.add('hidden');
                 document.getElementById('teacher-dashboard').classList.add('hidden');
                 document.getElementById('student-dashboard').classList.remove('hidden');
                 showStudentData();
+            }
+            
+            document.getElementById('nav-journal').classList.remove('hidden');
+            document.getElementById('nav-homework').classList.remove('hidden');
+        }
+
+        // Показать страницу
+        function showPage(pageId) {
+            document.getElementById('main-page').classList.add('hidden');
+            document.getElementById('journal-page').classList.add('hidden');
+            document.getElementById('homework-page').classList.add('hidden');
+            document.getElementById('students-page').classList.add('hidden');
+            document.getElementById('classes-page').classList.add('hidden');
+            
+            document.getElementById(pageId).classList.remove('hidden');
+            
+            // Загрузить данные для страницы
+            switch(pageId) {
+                case 'journal-page':
+                    loadJournalData();
+                    break;
+                case 'homework-page':
+                    loadHomeworkData();
+                    break;
+                case 'students-page':
+                    loadStudentsData();
+                    break;
+                case 'classes-page':
+                    loadClassesData();
+                    break;
             }
         }
 
@@ -931,7 +1131,99 @@
             alert(`Аккаунт учителя "${name}" успешно создан! Теперь вы можете войти с логином "${login}"`);
         }
 
-        // СОЗДАНИЕ УЧЕНИКА (для учителя)
+        // СОЗДАНИЕ КЛАССА
+        function createClass() {
+            const className = document.getElementById('class-name').value;
+            
+            if (!className) {
+                alert('Введите название класса');
+                return;
+            }
+            
+            const database = getDatabase();
+            
+            // Проверяем, нет ли уже класса с таким названием
+            const existingClass = database.classes.find(c => c.name === className);
+            if (existingClass) {
+                alert('Класс с таким названием уже существует');
+                return;
+            }
+            
+            // Создаем новый класс
+            const newClass = {
+                id: database.classes.length + 1,
+                name: className,
+                createdAt: new Date().toISOString()
+            };
+            
+            database.classes.push(newClass);
+            saveDatabase(database);
+            
+            // Закрываем модальное окно
+            document.getElementById('create-class-modal').style.display = 'none';
+            
+            // Очищаем форму
+            document.getElementById('class-name').value = '';
+            
+            // Обновляем интерфейс
+            if (document.getElementById('classes-page').classList.contains('hidden') === false) {
+                loadClassesData();
+            }
+            
+            showTeacherDashboard();
+            
+            alert(`Класс "${className}" успешно создан!`);
+        }
+
+        // СОЗДАНИЕ ДОМАШНЕГО ЗАДАНИЯ
+        function createHomework() {
+            const subject = document.getElementById('homework-subject').value;
+            const classId = parseInt(document.getElementById('homework-class').value);
+            const title = document.getElementById('homework-title').value;
+            const description = document.getElementById('homework-description').value;
+            const dueDate = document.getElementById('homework-due-date').value;
+            
+            if (!title || !description || !dueDate) {
+                alert('Заполните все обязательные поля');
+                return;
+            }
+            
+            const database = getDatabase();
+            
+            // Создаем новое домашнее задание
+            const newHomework = {
+                id: database.homework.length + 1,
+                subject: subject,
+                classId: classId,
+                title: title,
+                description: description,
+                dueDate: dueDate,
+                createdAt: new Date().toISOString(),
+                grades: {}
+            };
+            
+            database.homework.push(newHomework);
+            saveDatabase(database);
+            
+            // Закрываем модальное окно
+            document.getElementById('create-homework-modal').style.display = 'none';
+            
+            // Очищаем форму
+            document.getElementById('homework-title').value = '';
+            document.getElementById('homework-description').value = '';
+            document.getElementById('homework-due-date').value = '';
+            
+            // Обновляем интерфейс
+            if (document.getElementById('homework-page').classList.contains('hidden') === false) {
+                loadHomeworkData();
+            }
+            
+            showTeacherDashboard();
+            
+            alert(`Домашнее задание "${title}" успешно добавлено!`);
+        }
+
+        // СОЗДАНИЕ УЧЕНИКА
         function createStudent() {
             const database = getDatabase();
             const name = document.getElementById('student-name').value;
@@ -966,11 +1258,15 @@
             // Очистить форму
             document.getElementById('student-name').value = '';
             
+            // Обновить интерфейс
+            if (document.getElementById('students-page').classList.contains('hidden') === false) {
+                loadStudentsData();
+            }
+            
+            showTeacherDashboard();
+            
             // Показать уведомление
             alert(`Ученик создан!\nЛогин: ${login}\nПароль: ${password}\n\nСохраните эти данные!`);
-            
-            // Обновить статистику
-            showTeacherDashboard();
         }
 
         // ДОБАВЛЕНИЕ ОЦЕНКИ
@@ -999,6 +1295,11 @@
             // Очистить форму
             document.getElementById('grade-comment').value = '';
             
+            // Обновить интерфейс
+            if (document.getElementById('journal-page').classList.contains('hidden') === false) {
+                loadJournalData();
+            }
+            
             // Уведомление для учителя
             const student = database.users.find(u => u.id === studentId);
             alert(`Оценка ${gradeValue} поставлена ученику ${student.name}`);
@@ -1010,6 +1311,7 @@
             document.getElementById('class-count').textContent = database.classes.length;
             document.getElementById('student-count').textContent = database.users.filter(u => u.role === 'student').length;
             document.getElementById('homework-count').textContent = database.homework.length;
+            document.getElementById('grades-count').textContent = database.grades.length;
             document.getElementById('last-sync-display').textContent = new Date(database.lastSync).toLocaleTimeString();
         }
 
@@ -1031,6 +1333,31 @@
             
             document.getElementById('recent-grades').innerHTML = gradesHtml;
             
+            // Домашние задания для ученика
+            const studentHomework = database.homework.filter(h => h.classId === currentUser.classId)
+                .slice(0, 3);
+            
+            const homeworkHtml = studentHomework.length > 0
+                ? studentHomework.map(h => {
+                    const isOverdue = new Date(h.dueDate) < new Date();
+                    const hasGrade = h.grades && h.grades[currentUser.id];
+                    const cardClass = hasGrade ? 'homework-completed' : (isOverdue ? 'homework-overdue' : 'homework-card');
+                    
+                    return `
+                        <div class="${cardClass} card">
+                            <h4>${h.subject}: ${h.title}</h4>
+                            <p>${h.description}</p>
+                            <p><strong>Срок:</strong> ${formatDate(h.dueDate)}</p>
+                            ${hasGrade ? `<p><strong>Оценка:</strong> <span class="grade grade-${h.grades[currentUser.id].grade}">${h.grades[currentUser.id].grade}</span></p>` : ''}
+                            ${isOverdue && !hasGrade ? '<span class="badge badge-danger status-badge">Просрочено</span>' : ''}
+                            ${hasGrade ? '<span class="badge badge-success status-badge">Проверено</span>' : ''}
+                        </div>
+                    `;
+                }).join('')
+                : '<p>Домашних заданий нет</p>';
+            
+            document.getElementById('upcoming-homework').innerHTML = homeworkHtml;
+            
             // Расчет среднего балла
             const allGrades = database.grades.filter(g => g.studentId === currentUser.id);
             if (allGrades.length > 0) {
@@ -1041,15 +1368,195 @@
             }
         }
 
+        // ЗАГРУЗКА ДАННЫХ ЖУРНАЛА
+        function loadJournalData() {
+            const database = getDatabase();
+            const journalContent = document.getElementById('journal-content');
+            
+            if (currentUser.role === 'teacher') {
+                let html = '<h3>Все оценки</h3>';
+                
+                if (database.grades.length === 0) {
+                    html += '<p>Оценок пока нет</p>';
+                } else {
+                    html += '<table><thead><tr><th>Ученик</th><th>Предмет</th><th>Оценка</th><th>Дата</th><th>Комментарий</th></tr></thead><tbody>';
+                    
+                    database.grades.forEach(grade => {
+                        const student = database.users.find(u => u.id === grade.studentId);
+                        html += `
+                            <tr>
+                                <td>${student ? student.name : 'Неизвестно'}</td>
+                                <td>${grade.subject}</td>
+                                <td class="grade grade-${grade.grade}">${grade.grade}</td>
+                                <td>${formatDate(grade.date)}</td>
+                                <td>${grade.comment || ''}</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    html += '</tbody></table>';
+                }
+                
+                journalContent.innerHTML = html;
+            } else {
+                // Для ученика
+                const studentGrades = database.grades.filter(g => g.studentId === currentUser.id);
+                
+                let html = '<h3>Мои оценки</h3>';
+                
+                if (studentGrades.length === 0) {
+                    html += '<p>У вас пока нет оценок</p>';
+                } else {
+                    html += '<table><thead><tr><th>Предмет</th><th>Оценка</th><th>Дата</th><th>Комментарий</th></tr></thead><tbody>';
+                    
+                    studentGrades.forEach(grade => {
+                        html += `
+                            <tr>
+                                <td>${grade.subject}</td>
+                                <td class="grade grade-${grade.grade}">${grade.grade}</td>
+                                <td>${formatDate(grade.date)}</td>
+                                <td>${grade.comment || ''}</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    html += '</tbody></table>';
+                }
+                
+                journalContent.innerHTML = html;
+            }
+        }
+
+        // ЗАГРУЗКА ДАННЫХ ДОМАШНИХ ЗАДАНИЙ
+        function loadHomeworkData() {
+            const database = getDatabase();
+            const homeworkList = document.getElementById('homework-list');
+            
+            let homeworkToShow = [];
+            
+            if (currentUser.role === 'teacher') {
+                homeworkToShow = database.homework;
+            } else {
+                homeworkToShow = database.homework.filter(h => h.classId === currentUser.classId);
+            }
+            
+            if (homeworkToShow.length === 0) {
+                homeworkList.innerHTML = '<p>Домашних заданий нет</p>';
+                return;
+            }
+            
+            let html = '';
+            homeworkToShow.forEach(hw => {
+                const classInfo = database.classes.find(c => c.id === hw.classId);
+                const isOverdue = new Date(hw.dueDate) < new Date();
+                const cardClass = isOverdue ? 'homework-overdue' : 'homework-card';
+                
+                let gradesHtml = '';
+                if (currentUser.role === 'teacher') {
+                    const studentsInClass = database.users.filter(u => u.role === 'student' && u.classId === hw.classId);
+                    let gradedCount = 0;
+                    
+                    gradesHtml = '<div class="grades-section"><h4>Оценки:</h4>';
+                    studentsInClass.forEach(student => {
+                        const gradeInfo = hw.grades && hw.grades[student.id];
+                        const grade = gradeInfo ? gradeInfo.grade : 'Нет';
+                        if (gradeInfo) gradedCount++;
+                        gradesHtml += `<p>${student.name}: ${grade}</p>`;
+                    });
+                    gradesHtml += `<p><strong>Проверено:</strong> ${gradedCount}/${studentsInClass.length}</p></div>`;
+                } else {
+                    const gradeInfo = hw.grades && hw.grades[currentUser.id];
+                    const grade = gradeInfo ? gradeInfo.grade : 'Не оценено';
+                    gradesHtml = `<p><strong>Ваша оценка:</strong> <span class="grade grade-${grade}">${grade}</span></p>`;
+                }
+                
+                html += `
+                    <div class="${cardClass} card">
+                        <h3>${hw.subject}: ${hw.title}</h3>
+                        <p><strong>Класс:</strong> ${classInfo ? classInfo.name : 'Не указан'}</p>
+                        <p><strong>Описание:</strong> ${hw.description}</p>
+                        <p><strong>Срок сдачи:</strong> ${formatDate(hw.dueDate)}</p>
+                        <p><strong>Дата создания:</strong> ${formatDate(hw.createdAt)}</p>
+                        ${isOverdue ? '<span class="badge badge-danger status-badge">Просрочено</span>' : ''}
+                        ${gradesHtml}
+                    </div>
+                `;
+            });
+            
+            homeworkList.innerHTML = html;
+        }
+
+        // ЗАГРУЗКА ДАННЫХ УЧЕНИКОВ
+        function loadStudentsData() {
+            const database = getDatabase();
+            const studentsTbody = document.getElementById('students-management-tbody');
+            studentsTbody.innerHTML = '';
+            
+            database.users
+                .filter(u => u.role === 'student')
+                .forEach(student => {
+                    const studentClass = database.classes.find(c => c.id === student.classId);
+                    const studentGrades = database.grades.filter(g => g.studentId === student.id);
+                    const averageGrade = studentGrades.length > 0 
+                        ? (studentGrades.reduce((sum, g) => sum + g.grade, 0) / studentGrades.length).toFixed(2)
+                        : 'Нет оценок';
+                    
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${student.id}</td>
+                        <td>${student.name}</td>
+                        <td>${studentClass ? studentClass.name : '-'}</td>
+                        <td>${student.login}</td>
+                        <td>${student.password}</td>
+                        <td>
+                            <span class="badge badge-info">Средний: ${averageGrade}</span>
+                        </td>
+                    `;
+                    studentsTbody.appendChild(row);
+                });
+        }
+
+        // ЗАГРУЗКА ДАННЫХ КЛАССОВ
+        function loadClassesData() {
+            const database = getDatabase();
+            const classesGrid = document.getElementById('classes-grid');
+            classesGrid.innerHTML = '';
+            
+            database.classes.forEach(classItem => {
+                const studentsInClass = database.users.filter(u => u.role === 'student' && u.classId === classItem.id);
+                const classHomework = database.homework.filter(h => h.classId === classItem.id);
+                
+                const classCard = document.createElement('div');
+                classCard.className = 'card';
+                classCard.innerHTML = `
+                    <h3>${classItem.name}</h3>
+                    <p><strong>Учеников:</strong> ${studentsInClass.length}</p>
+                    <p><strong>Активных ДЗ:</strong> ${classHomework.length}</p>
+                    <div class="students-list">
+                        <h4>Ученики:</h4>
+                        ${studentsInClass.length > 0 
+                            ? `<ul>${studentsInClass.map(s => `<li>${s.name}</li>`).join('')}</ul>`
+                            : '<p>В классе нет учеников</p>'
+                        }
+                    </div>
+                `;
+                
+                classesGrid.appendChild(classCard);
+            });
+        }
+
         // ПОКАЗАТЬ МОДАЛЬНОЕ ОКНО
         function showModal(modalId) {
             const database = getDatabase();
             const modal = document.getElementById(modalId);
             modal.style.display = 'flex';
             
-            // Заполнить выпадающие списки для модальных окон учителя
-            if (modalId === 'create-student-modal') {
-                const classSelect = document.getElementById('student-class');
+            // Заполнить выпадающие списки
+            if (modalId === 'create-student-modal' || modalId === 'create-homework-modal') {
+                const classSelect = modalId === 'create-student-modal' 
+                    ? document.getElementById('student-class')
+                    : document.getElementById('homework-class');
+                
                 classSelect.innerHTML = '';
                 database.classes.forEach(classItem => {
                     const option = document.createElement('option');
@@ -1113,6 +1620,12 @@
                 document.getElementById('sync-text').textContent = `Не синхронизировано (${diffSeconds} сек.)`;
                 document.getElementById('sync-status-text').textContent = 'Оффлайн';
             }
+        }
+
+        // ФОРМАТИРОВАНИЕ ДАТЫ
+        function formatDate(dateString) {
+            const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
+            return new Date(dateString).toLocaleDateString('ru-RU', options);
         }
     </script>
 </body>
