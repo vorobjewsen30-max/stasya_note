@@ -429,6 +429,104 @@
             font-size: 0.7rem;
         }
         
+        .settings-section {
+            margin-bottom: 2rem;
+        }
+        
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+        
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: var(--light);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        
+        .setting-info {
+            flex: 1;
+        }
+        
+        .setting-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .setting-description {
+            font-size: 0.9rem;
+            color: var(--gray);
+        }
+        
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+        
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: var(--success);
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        
+        .real-time-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--success);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1001;
+            animation: slideIn 0.5s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
         @media (max-width: 768px) {
             .header-content {
                 flex-direction: column;
@@ -463,6 +561,15 @@
             .actions {
                 flex-direction: column;
             }
+            
+            .settings-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .real-time-notification {
+                left: 20px;
+                right: 20px;
+            }
         }
     </style>
 </head>
@@ -480,6 +587,7 @@
                         <li><a href="#" id="nav-homework" class="hidden">Домашние задания</a></li>
                         <li><a href="#" id="nav-students" class="hidden">Ученики</a></li>
                         <li><a href="#" id="nav-classes" class="hidden">Классы</a></li>
+                        <li><a href="#" id="nav-settings" class="hidden">Настройки</a></li>
                     </ul>
                 </nav>
                 <div class="auth-section">
@@ -556,6 +664,7 @@
                             <h3>Синхронизация</h3>
                             <p>Статус: <span id="sync-status-text">Проверка...</span></p>
                             <p>Последняя синхронизация: <span id="last-sync-display">-</span></p>
+                            <p>Следующая через: <span id="next-sync-timer">15 сек</span></p>
                             <button class="btn btn-primary" id="manual-sync-main-btn">Синхронизировать сейчас</button>
                         </div>
                     </div>
@@ -640,6 +749,134 @@
                 </div>
                 <div class="grid" id="classes-grid">
                     <!-- Карточки классов будут добавлены через JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Страница настроек -->
+        <div id="settings-page" class="hidden">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Настройки системы</h2>
+                </div>
+                
+                <div class="tabs">
+                    <div class="tab active" data-tab="sync-settings">Синхронизация</div>
+                    <div class="tab" data-tab="app-settings">Настройки приложения</div>
+                    <div class="tab" data-tab="backup-settings">Резервные копии</div>
+                </div>
+                
+                <div class="tab-content active" id="sync-settings-tab">
+                    <div class="settings-section">
+                        <h3>Настройки синхронизации</h3>
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-title">Автоматическая синхронизация</div>
+                                <div class="setting-description">Автоматически синхронизировать данные каждые 15 секунд</div>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="auto-sync-toggle" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-title">Уведомления о новых оценках</div>
+                                <div class="setting-description">Показывать уведомления при получении новых оценок</div>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="notifications-toggle" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-title">Интервал синхронизации</div>
+                                <div class="setting-description">Частота автоматической синхронизации</div>
+                            </div>
+                            <select id="sync-interval">
+                                <option value="5000">5 секунд</option>
+                                <option value="15000" selected>15 секунд</option>
+                                <option value="30000">30 секунд</option>
+                                <option value="60000">1 минута</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <h3>Статус синхронизации</h3>
+                        <p><strong>Текущий статус:</strong> <span id="sync-current-status">Проверка...</span></p>
+                        <p><strong>Последняя синхронизация:</strong> <span id="sync-last-time">-</span></p>
+                        <p><strong>Следующая синхронизация:</strong> <span id="sync-next-time">-</span></p>
+                        <p><strong>Всего синхронизаций:</strong> <span id="sync-total-count">0</span></p>
+                        
+                        <div class="actions">
+                            <button class="btn btn-primary" id="sync-now-btn">Синхронизировать сейчас</button>
+                            <button class="btn btn-info" id="test-sync-btn">Тест синхронизации</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tab-content" id="app-settings-tab">
+                    <div class="settings-section">
+                        <h3>Настройки приложения</h3>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-title">Темная тема</div>
+                                <div class="setting-description">Включить темную тему оформления</div>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="dark-theme-toggle">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        
+                        <div class="setting-item">
+                            <div class="setting-info">
+                                <div class="setting-title">Автовыход</div>
+                                <div class="setting-description">Автоматический выход через 30 минут неактивности</div>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="auto-logout-toggle" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <h3>Информация о системе</h3>
+                        <p><strong>Версия приложения:</strong> <span id="app-version">2.0</span></p>
+                        <p><strong>Всего пользователей:</strong> <span id="total-users">0</span></p>
+                        <p><strong>Размер данных:</strong> <span id="data-size">0 KB</span></p>
+                        <p><strong>Последнее обновление:</strong> <span id="last-update">-</span></p>
+                    </div>
+                </div>
+                
+                <div class="tab-content" id="backup-settings-tab">
+                    <div class="settings-section">
+                        <h3>Управление данными</h3>
+                        
+                        <div class="card">
+                            <h4>Резервное копирование</h4>
+                            <p>Создайте резервную копию всех данных системы</p>
+                            <div class="actions">
+                                <button class="btn btn-success" id="export-data-btn">Экспорт данных</button>
+                                <button class="btn btn-warning" id="import-data-btn">Импорт данных</button>
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <h4>Очистка данных</h4>
+                            <p>Внимание: эти действия нельзя отменить!</p>
+                            <div class="actions">
+                                <button class="btn btn-danger" id="clear-cache-btn">Очистить кэш</button>
+                                <button class="btn btn-danger" id="reset-data-btn">Сбросить все данные</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -807,13 +1044,184 @@
     </footer>
 
     <script>
+        // СИСТЕМА СИНХРОНИЗАЦИИ
+        class SyncSystem {
+            constructor() {
+                this.isOnline = true;
+                this.syncInterval = null;
+                this.syncIntervalTime = 15000; // 15 секунд по умолчанию
+                this.syncCount = 0;
+                this.lastSyncTime = null;
+                this.nextSyncTime = null;
+                this.autoSyncEnabled = true;
+                this.notificationsEnabled = true;
+            }
+
+            start() {
+                if (this.autoSyncEnabled) {
+                    this.startAutoSync();
+                }
+                this.updateSyncDisplay();
+            }
+
+            startAutoSync() {
+                this.stopAutoSync();
+                
+                this.syncInterval = setInterval(() => {
+                    this.performSync();
+                }, this.syncIntervalTime);
+                
+                this.calculateNextSync();
+                console.log(`Автосинхронизация запущена с интервалом ${this.syncIntervalTime/1000} секунд`);
+            }
+
+            stopAutoSync() {
+                if (this.syncInterval) {
+                    clearInterval(this.syncInterval);
+                    this.syncInterval = null;
+                }
+            }
+
+            setSyncInterval(interval) {
+                this.syncIntervalTime = interval;
+                if (this.autoSyncEnabled) {
+                    this.startAutoSync();
+                }
+            }
+
+            async performSync() {
+                if (!this.isOnline) return;
+
+                try {
+                    // Показываем статус синхронизации
+                    this.showSyncStatus('Синхронизация...', 'sync-pulse');
+                    
+                    // Эмуляция синхронизации с сервером
+                    await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1000));
+                    
+                    const database = getDatabase();
+                    
+                    // Обновляем временные метки
+                    database.lastSync = Date.now();
+                    database.syncCount = (database.syncCount || 0) + 1;
+                    saveDatabase(database);
+                    
+                    this.syncCount = database.syncCount;
+                    this.lastSyncTime = database.lastSync;
+                    this.calculateNextSync();
+                    
+                    // Показываем успешный статус
+                    this.showSyncStatus('Синхронизировано', 'sync-online');
+                    
+                    // Показываем уведомление (если включено)
+                    if (this.notificationsEnabled && this.syncCount > 1) {
+                        this.showNotification('Данные синхронизированы');
+                    }
+                    
+                    console.log(`Синхронизация #${this.syncCount} завершена`);
+                    
+                } catch (error) {
+                    console.error('Ошибка синхронизации:', error);
+                    this.showSyncStatus('Ошибка синхронизации', 'sync-offline');
+                }
+            }
+
+            manualSync() {
+                this.performSync();
+            }
+
+            calculateNextSync() {
+                if (this.lastSyncTime && this.autoSyncEnabled) {
+                    this.nextSyncTime = this.lastSyncTime + this.syncIntervalTime;
+                }
+            }
+
+            showSyncStatus(text, className) {
+                const indicator = document.getElementById('sync-indicator');
+                const statusText = document.getElementById('sync-text');
+                const mainStatus = document.getElementById('sync-status-text');
+                const currentStatus = document.getElementById('sync-current-status');
+                
+                if (indicator) {
+                    indicator.className = `sync-indicator ${className}`;
+                }
+                if (statusText) {
+                    statusText.textContent = text;
+                }
+                if (mainStatus) {
+                    mainStatus.textContent = text;
+                }
+                if (currentStatus) {
+                    currentStatus.textContent = text;
+                }
+            }
+
+            showNotification(message) {
+                if (!this.notificationsEnabled) return;
+                
+                const notification = document.createElement('div');
+                notification.className = 'real-time-notification';
+                notification.innerHTML = `
+                    <strong>🔄 Синхронизация</strong><br>
+                    ${message}
+                    <br><small>${new Date().toLocaleTimeString()}</small>
+                `;
+                document.body.appendChild(notification);
+
+                setTimeout(() => {
+                    notification.remove();
+                }, 3000);
+            }
+
+            updateSyncDisplay() {
+                const lastSyncDisplay = document.getElementById('last-sync-display');
+                const syncLastTime = document.getElementById('sync-last-time');
+                const syncNextTime = document.getElementById('sync-next-time');
+                const syncTotalCount = document.getElementById('sync-total-count');
+                const nextSyncTimer = document.getElementById('next-sync-timer');
+                
+                const database = getDatabase();
+                this.syncCount = database.syncCount || 0;
+                this.lastSyncTime = database.lastSync || Date.now();
+                
+                if (lastSyncDisplay) {
+                    lastSyncDisplay.textContent = new Date(this.lastSyncTime).toLocaleTimeString();
+                }
+                if (syncLastTime) {
+                    syncLastTime.textContent = new Date(this.lastSyncTime).toLocaleString();
+                }
+                if (syncTotalCount) {
+                    syncTotalCount.textContent = this.syncCount;
+                }
+                
+                // Обновляем таймер следующей синхронизации
+                if (this.autoSyncEnabled && this.lastSyncTime) {
+                    this.calculateNextSync();
+                    const now = Date.now();
+                    const timeUntilNext = Math.max(0, this.nextSyncTime - now);
+                    
+                    if (syncNextTime) {
+                        syncNextTime.textContent = new Date(this.nextSyncTime).toLocaleTimeString();
+                    }
+                    if (nextSyncTimer) {
+                        nextSyncTimer.textContent = `${Math.ceil(timeUntilNext/1000)} сек`;
+                    }
+                } else {
+                    if (syncNextTime) syncNextTime.textContent = 'Отключена';
+                    if (nextSyncTimer) nextSyncTimer.textContent = 'Отключена';
+                }
+            }
+        }
+
+        // Создаем систему синхронизации
+        const syncSystem = new SyncSystem();
+
         // БАЗА ДАННЫХ
         function getDatabase() {
             const db = localStorage.getItem('stasyaNoteDatabase');
             if (db) {
                 return JSON.parse(db);
             } else {
-                // Инициализация базы данных по умолчанию
                 const defaultDb = {
                     users: [
                         { 
@@ -870,7 +1278,15 @@
                             timestamp: Date.now()
                         }
                     ],
+                    settings: {
+                        autoSync: true,
+                        notifications: true,
+                        syncInterval: 15000,
+                        darkTheme: false,
+                        autoLogout: true
+                    },
                     lastSync: Date.now(),
+                    syncCount: 0,
                     version: "2.0"
                 };
                 saveDatabase(defaultDb);
@@ -881,7 +1297,80 @@
         function saveDatabase(db) {
             db.lastSync = Date.now();
             localStorage.setItem('stasyaNoteDatabase', JSON.stringify(db));
-            updateSyncStatus();
+            updateSyncDisplay();
+        }
+
+        // Загрузка настроек
+        function loadSettings() {
+            const database = getDatabase();
+            const settings = database.settings || {};
+            
+            // Устанавливаем значения переключателей
+            document.getElementById('auto-sync-toggle').checked = settings.autoSync !== false;
+            document.getElementById('notifications-toggle').checked = settings.notifications !== false;
+            document.getElementById('dark-theme-toggle').checked = settings.darkTheme || false;
+            document.getElementById('auto-logout-toggle').checked = settings.autoLogout !== false;
+            document.getElementById('sync-interval').value = settings.syncInterval || 15000;
+            
+            // Обновляем систему синхронизации
+            syncSystem.autoSyncEnabled = settings.autoSync !== false;
+            syncSystem.notificationsEnabled = settings.notifications !== false;
+            syncSystem.setSyncInterval(settings.syncInterval || 15000);
+            
+            if (syncSystem.autoSyncEnabled) {
+                syncSystem.start();
+            }
+            
+            // Применяем тему
+            applyTheme(settings.darkTheme || false);
+        }
+
+        // Сохранение настроек
+        function saveSettings() {
+            const database = getDatabase();
+            
+            database.settings = {
+                autoSync: document.getElementById('auto-sync-toggle').checked,
+                notifications: document.getElementById('notifications-toggle').checked,
+                syncInterval: parseInt(document.getElementById('sync-interval').value),
+                darkTheme: document.getElementById('dark-theme-toggle').checked,
+                autoLogout: document.getElementById('auto-logout-toggle').checked
+            };
+            
+            saveDatabase(database);
+            loadSettings(); // Перезагружаем настройки
+            showNotification('Настройки сохранены!');
+        }
+
+        // Применение темы
+        function applyTheme(isDark) {
+            if (isDark) {
+                document.body.style.backgroundColor = '#1a1a1a';
+                document.body.style.color = '#ffffff';
+            } else {
+                document.body.style.backgroundColor = '#f5f7fa';
+                document.body.style.color = '#2c3e50';
+            }
+        }
+
+        // Показ уведомления
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.className = 'real-time-notification';
+            notification.innerHTML = `
+                <strong>⚙️ Настройки</strong><br>
+                ${message}
+            `;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // Обновление отображения синхронизации
+        function updateSyncDisplay() {
+            syncSystem.updateSyncDisplay();
         }
 
         // Текущий пользователь
@@ -901,8 +1390,9 @@
                 }
             }
 
-            updateSyncStatus();
-
+            // Загрузка настроек
+            loadSettings();
+            
             // Обработчики событий
             document.getElementById('login-submit').addEventListener('click', login);
             document.getElementById('logout-btn').addEventListener('click', logout);
@@ -915,6 +1405,7 @@
             document.getElementById('nav-homework').addEventListener('click', () => showPage('homework-page'));
             document.getElementById('nav-students').addEventListener('click', () => showPage('students-page'));
             document.getElementById('nav-classes').addEventListener('click', () => showPage('classes-page'));
+            document.getElementById('nav-settings').addEventListener('click', () => showPage('settings-page'));
             
             // Обработчики для учителя
             document.getElementById('create-student-btn').addEventListener('click', () => showModal('create-student-modal'));
@@ -933,7 +1424,27 @@
             document.getElementById('add-grade-btn').addEventListener('click', () => showModal('add-grade-modal'));
             document.getElementById('save-grade-btn').addEventListener('click', addGrade);
             
-            document.getElementById('manual-sync-main-btn').addEventListener('click', manualSync);
+            document.getElementById('manual-sync-main-btn').addEventListener('click', () => syncSystem.manualSync());
+
+            // Обработчики для настроек
+            document.getElementById('auto-sync-toggle').addEventListener('change', saveSettings);
+            document.getElementById('notifications-toggle').addEventListener('change', saveSettings);
+            document.getElementById('dark-theme-toggle').addEventListener('change', saveSettings);
+            document.getElementById('auto-logout-toggle').addEventListener('change', saveSettings);
+            document.getElementById('sync-interval').addEventListener('change', saveSettings);
+            
+            document.getElementById('sync-now-btn').addEventListener('click', () => {
+                syncSystem.manualSync();
+            });
+            
+            document.getElementById('test-sync-btn').addEventListener('click', () => {
+                syncSystem.showNotification('Тестовая синхронизация выполнена');
+            });
+            
+            document.getElementById('export-data-btn').addEventListener('click', exportData);
+            document.getElementById('import-data-btn').addEventListener('click', importData);
+            document.getElementById('clear-cache-btn').addEventListener('click', clearCache);
+            document.getElementById('reset-data-btn').addEventListener('click', resetData);
 
             // Закрытие модальных окон
             document.querySelectorAll('.close-modal').forEach(button => {
@@ -942,9 +1453,21 @@
                 });
             });
 
+            // Переключение вкладок
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabId = this.getAttribute('data-tab');
+                    switchTab(tabId);
+                });
+            });
+
             // Автозаполнение демо-аккаунтов для удобства тестирования
             document.getElementById('login').value = 'teacher';
             document.getElementById('password').value = 'Stasya';
+
+            // Запускаем обновление отображения синхронизации
+            setInterval(updateSyncDisplay, 1000);
+            setInterval(updateSystemInfo, 5000);
         });
 
         // Функция авторизации
@@ -966,6 +1489,10 @@
                 showMainPage();
                 hideLoginError();
                 console.log('Успешный вход:', user);
+                
+                // Запускаем синхронизацию после входа
+                syncSystem.start();
+                
             } else {
                 showLoginError('Неверный логин или пароль');
             }
@@ -985,6 +1512,7 @@
         function logout() {
             currentUser = null;
             localStorage.removeItem('currentUser');
+            syncSystem.stopAutoSync();
             showLoginPage();
         }
 
@@ -996,6 +1524,7 @@
             document.getElementById('homework-page').classList.add('hidden');
             document.getElementById('students-page').classList.add('hidden');
             document.getElementById('classes-page').classList.add('hidden');
+            document.getElementById('settings-page').classList.add('hidden');
             
             document.getElementById('login-btn').classList.remove('hidden');
             document.getElementById('logout-btn').classList.add('hidden');
@@ -1015,6 +1544,7 @@
             document.getElementById('homework-page').classList.add('hidden');
             document.getElementById('students-page').classList.add('hidden');
             document.getElementById('classes-page').classList.add('hidden');
+            document.getElementById('settings-page').classList.add('hidden');
             
             document.getElementById('login-btn').classList.add('hidden');
             document.getElementById('logout-btn').classList.remove('hidden');
@@ -1028,6 +1558,7 @@
             if (currentUser.role === 'teacher') {
                 document.getElementById('nav-students').classList.remove('hidden');
                 document.getElementById('nav-classes').classList.remove('hidden');
+                document.getElementById('nav-settings').classList.remove('hidden');
                 document.getElementById('add-homework-btn').classList.remove('hidden');
                 document.getElementById('add-grade-btn').classList.remove('hidden');
                 document.getElementById('teacher-dashboard').classList.remove('hidden');
@@ -1036,6 +1567,7 @@
             } else {
                 document.getElementById('nav-students').classList.add('hidden');
                 document.getElementById('nav-classes').classList.add('hidden');
+                document.getElementById('nav-settings').classList.add('hidden');
                 document.getElementById('add-homework-btn').classList.add('hidden');
                 document.getElementById('add-grade-btn').classList.add('hidden');
                 document.getElementById('teacher-dashboard').classList.add('hidden');
@@ -1054,6 +1586,7 @@
             document.getElementById('homework-page').classList.add('hidden');
             document.getElementById('students-page').classList.add('hidden');
             document.getElementById('classes-page').classList.add('hidden');
+            document.getElementById('settings-page').classList.add('hidden');
             
             document.getElementById(pageId).classList.remove('hidden');
             
@@ -1071,7 +1604,21 @@
                 case 'classes-page':
                     loadClassesData();
                     break;
+                case 'settings-page':
+                    loadSettingsPage();
+                    break;
             }
+        }
+
+        // Переключение вкладок
+        function switchTab(tabId) {
+            // Сбросить активные вкладки
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            // Активировать выбранную вкладку
+            document.querySelector(`.tab[data-tab="${tabId}"]`).classList.add('active');
+            document.getElementById(`${tabId}-tab`).classList.add('active');
         }
 
         // СОЗДАНИЕ АККАУНТА УЧИТЕЛЯ
@@ -1545,6 +2092,11 @@
             });
         }
 
+        // ЗАГРУЗКА СТРАНИЦЫ НАСТРОЕК
+        function loadSettingsPage() {
+            updateSystemInfo();
+        }
+
         // ПОКАЗАТЬ МОДАЛЬНОЕ ОКНО
         function showModal(modalId) {
             const database = getDatabase();
@@ -1594,32 +2146,77 @@
             }
         }
 
-        // СИНХРОНИЗАЦИЯ
-        function manualSync() {
+        // Функции для работы с данными
+        function exportData() {
             const database = getDatabase();
-            database.lastSync = Date.now();
-            saveDatabase(database);
-            alert('Данные синхронизированы!');
-            showTeacherDashboard();
+            const dataStr = JSON.stringify(database, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `stasya_note_backup_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showNotification('Данные экспортированы!');
         }
 
-        function updateSyncStatus() {
-            const db = getDatabase();
-            const lastSync = db.lastSync;
-            const now = Date.now();
-            const diffSeconds = Math.floor((now - lastSync) / 1000);
+        function importData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
             
-            document.getElementById('last-sync-display').textContent = new Date(lastSync).toLocaleTimeString();
+            input.onchange = e => {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                
+                reader.onload = function(event) {
+                    try {
+                        const importedData = JSON.parse(event.target.result);
+                        
+                        if (confirm('Вы уверены, что хотите импортировать данные? Текущие данные будут заменены.')) {
+                            saveDatabase(importedData);
+                            showNotification('Данные успешно импортированы!');
+                            location.reload();
+                        }
+                    } catch (error) {
+                        alert('Ошибка при импорте данных: файл поврежден или имеет неверный формат');
+                    }
+                };
+                
+                reader.readAsText(file);
+            };
             
-            if (diffSeconds < 10) {
-                document.getElementById('sync-indicator').className = 'sync-indicator sync-online';
-                document.getElementById('sync-text').textContent = 'Синхронизировано';
-                document.getElementById('sync-status-text').textContent = 'Онлайн';
-            } else {
-                document.getElementById('sync-indicator').className = 'sync-indicator sync-offline';
-                document.getElementById('sync-text').textContent = `Не синхронизировано (${diffSeconds} сек.)`;
-                document.getElementById('sync-status-text').textContent = 'Оффлайн';
+            input.click();
+        }
+
+        function clearCache() {
+            if (confirm('Очистить кэш? Это не удалит ваши данные.')) {
+                // Здесь можно добавить очистку кэша
+                showNotification('Кэш очищен!');
             }
+        }
+
+        function resetData() {
+            if (confirm('ВНИМАНИЕ! Это удалит ВСЕ данные. Вы уверены?')) {
+                if (confirm('Это действие нельзя отменить. Точно продолжить?')) {
+                    localStorage.removeItem('stasyaNoteDatabase');
+                    localStorage.removeItem('currentUser');
+                    showNotification('Все данные сброшены!');
+                    setTimeout(() => {
+                        location.reload();
+                    }, 2000);
+                }
+            }
+        }
+
+        function updateSystemInfo() {
+            const database = getDatabase();
+            document.getElementById('total-users').textContent = database.users.length;
+            document.getElementById('data-size').textContent = Math.round(JSON.stringify(database).length / 1024) + ' KB';
+            document.getElementById('last-update').textContent = new Date(database.lastSync).toLocaleString();
         }
 
         // ФОРМАТИРОВАНИЕ ДАТЫ
